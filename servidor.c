@@ -100,27 +100,29 @@ int main( int argc, char*argv[]){
 	}
 }
 
+bool compareTo(char v1, char v2){
+	printf("Comparo : %c y %c \n", v1, v2);
+	bool igual = true;
+	if (strcmp(&v1, &v2) != 0 ){
+		igual = false;
+		printf("ERROR. Numero con valores repetidos, digite otro \n");
+	}
+	return igual;
+}
 
-bool esEntero(char *arr, int t){
+bool esEntero(char arr[], int t){
 	bool eSentero = true;
 	int c = 0;
-	char tempo[4];
 	for (int i=0; i<4; i++){
-		if (isdigit(arr[i]) != 0){
+		char dato = arr[i];
+		if (isdigit(dato) != 0){
 			c++;
-			tempo[i] = arr[i];
 		} 
 	}
 	if (t == 4 && c == 4){
 		for (int i=0; i<3; i++){
 			for (int j=i+1; j<4; j++){
-				printf("Comparo : %c y %c \n", tempo[i], tempo[j]);
-				char* tem1 = &tempo[i];
-				char* tem2 = &tempo[j];
-				if (strcmp (tem1, tem2) == 0){
-					eSentero = false;
-					printf("ERROR. Numero con valores repetidos, digite otro \n");
-				}
+				eSentero = compareTo(arr[i], arr[j]);
 			}	
 		}
 	} else {
@@ -129,6 +131,7 @@ bool esEntero(char *arr, int t){
 	} 
 	return eSentero;
 }
+
 
 
 void servicio( int sock){
