@@ -8,7 +8,6 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <netdb.h>
-//#include <strings.h>
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
@@ -101,11 +100,11 @@ int main( int argc, char*argv[]){
 }
 
 bool compareTo(char v1, char v2){
-	printf("Comparo : %c y %c \n", v1, v2);
-	bool igual = true;
-	if (strcmp(&v1, &v2) != 0 ){
-		igual = false;
-		printf("ERROR. Numero con valores repetidos, digite otro \n");
+	//printf("Comparo : %c y %c \n", v1, v2);
+	bool igual = false;
+	if (v1 == v2){
+		igual = true;
+		//printf("ERROR. Numero con valores repetidos, digite otro \n");
 	}
 	return igual;
 }
@@ -119,11 +118,20 @@ bool esEntero(char arr[], int t){
 			c++;
 		} 
 	}
+	bool igual;
 	if (t == 4 && c == 4){
 		for (int i=0; i<3; i++){
 			for (int j=i+1; j<4; j++){
-				eSentero = compareTo(arr[i], arr[j]);
-			}	
+				igual = compareTo(arr[i], arr[j]);
+				if (igual){
+					eSentero = false;
+					break;
+				}
+			}
+			if (igual){
+				eSentero = false;
+				break;
+			}
 		}
 	} else {
 		printf("ERROR. Digite un numero de 4 digitos\n");
@@ -134,7 +142,7 @@ bool esEntero(char arr[], int t){
 
 
 
-void servicio( int sock){
+servicio( int sock){
 	int n ;
 	
 	int alt[4];
@@ -153,11 +161,20 @@ void servicio( int sock){
 		printf("Mensaje : %s", line);
 		bool v = esEntero(line, n-1);
 		if (v){
-			char cadena[] = "Es un numero de 4 digitos";
+			int c = 0;
+			for (int i = 0; i<4; i++){
+				char value = alt[i] + '0';
+				if (compareTo(value, line[i]))
+					c++;
+			}
+			int c2 = 4-c;
+			char value1 = c + '0';
+			char value2 = c2 + '0';
+			char cadena[] = {value1,' ','F','I','J','A','S','\n',value2,' ','P','I','C','A','S','\n','\0'};
 			int m = sizeof(cadena);
 			write(sock, cadena, m);
 		} else {
-			char cadena[] = "ERROR,Digite un numero de 4 digitos";
+			char cadena[] = "ERROR,Digite un numero de 4 digitos\n";
 			int m = sizeof(cadena);
 			write(sock, cadena, m);
 		}
