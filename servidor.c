@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <time.h>
 
 #define SIZE 256
 #define PORT 2222
@@ -100,13 +101,27 @@ int main( int argc, char*argv[]){
 }
 
 bool compareTo(char v1, char v2){
-	//printf("Comparo : %c y %c \n", v1, v2);
+	printf("Comparo : %c y %c \n", v1, v2);
 	bool igual = false;
 	if (v1 == v2){
 		igual = true;
 		//printf("ERROR. Numero con valores repetidos, digite otro \n");
 	}
 	return igual;
+}
+
+bool validar_rpt(char arr[]){
+	bool repetido;
+	for (int i=0; i<3; i++){
+		for (int j=i+1; j<4; j++){
+			repetido = compareTo(arr[i], arr[j]);
+			if (repetido)
+				break;
+		}
+		if (repetido)
+			break;
+	}
+	return repetido;
 }
 
 bool esEntero(char arr[], int t){
@@ -118,23 +133,12 @@ bool esEntero(char arr[], int t){
 			c++;
 		} 
 	}
-	bool igual;
+	
 	if (t == 4 && c == 4){
-		for (int i=0; i<3; i++){
-			for (int j=i+1; j<4; j++){
-				igual = compareTo(arr[i], arr[j]);
-				if (igual){
-					eSentero = false;
-					break;
-				}
-			}
-			if (igual){
-				eSentero = false;
-				break;
-			}
-		}
+		if(validar_rpt(arr))
+			eSentero = false;
 	} else {
-		printf("ERROR. Digite un numero de 4 digitos\n");
+		//printf("ERROR. Digite un numero de 4 digitos\n");
 		eSentero = false;
 	} 
 	return eSentero;
@@ -146,13 +150,22 @@ servicio( int sock){
 	int n ;
 	
 	int alt[4];
+	char numm[4];
+	srand(time(NULL));
+	
 	for (int i=0; i < 4; i++){
-		alt[i] = rand () % 11;
+		alt[i] = rand () % 11 - 1;	
+		numm[i] = alt[i] + '0';
+	}
+	while (validar_rpt(numm)){
+		for (int i=0; i < 4; i++){
+			alt[i] = rand () % 11 - 1;
+			numm[i] = alt[i] + '0';
+		}
 	}
 	int num = (alt[0]*1000) + (alt[1]*100) + (alt[2]*10) + alt[3];
-	
-	printf("NUMERO ALEATORIO GENERADO :  %d \n----------------------------\n", num);
-	
+	int tam = strlen(numm);
+	printf("NUMERO ALEATORIO GENERADO :  %i con tamaño %i \n----------------------------\n", num, tam);
 	for (;;) {
 		n = read( sock, line, MAXLINE );
 		if(n <= 0){
@@ -170,9 +183,15 @@ servicio( int sock){
 			int c2 = 4-c;
 			char value1 = c + '0';
 			char value2 = c2 + '0';
-			char cadena[] = {value1,' ','F','I','J','A','S','\n',value2,' ','P','I','C','A','S','\n','\0'};
-			int m = sizeof(cadena);
-			write(sock, cadena, m);
+			if (c == 4){
+				char congr[] = {'F','E','L','I','C','I','T','A','C','I','O','N','E','S','\n','\0'};
+				int tr = sizeof(congr);
+				write(sock, congr, tr);
+			} else {
+				char cadena[] = {value1,' ','F','I','J','A','S','\n',value2,' ','P','I','C','A','S','\n','\0'};
+				int m = sizeof(cadena);
+				write(sock, cadena, m);
+			}
 		} else {
 			char cadena[] = "ERROR,Digite un numero de 4 digitos\n";
 			int m = sizeof(cadena);
