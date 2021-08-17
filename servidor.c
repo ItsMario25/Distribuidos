@@ -19,6 +19,7 @@
 #define MAXLINE 4096
 #define TRUE 1
 char line[MAXLINE];
+int alt[4]; char numm[4];
 
 servicio( int sock);
 
@@ -56,52 +57,14 @@ int crearsocket( int *port, int type){
 void sigchld(){
 	pid_t pid;
 	int stat;
-
 	pid=wait( &stat);
 	fprintf( stderr, "proceso hijo: %d terminado\n",pid );
 	return;
 }
 
-int main( int argc, char*argv[]){
-
-	int sock_escucha, sock_servicio;
-	struct sockaddr_in adr;
-	int lgadr = sizeof(adr);
-	int port = PORT;
-
-	if (argc !=2){
-		fprintf( stderr, "uso: %s [port]\n", argv[0]);
-		exit(1);
-	}
-
-	port = atoi( argv[1]);
-
-	if(( sock_escucha = crearsocket( &port, SOCK_STREAM ))== -1){
-		fprintf( stderr, "Error: No se pudo crear/conectar socket\n");
-		exit(2);
-	}
-
-	signal( SIGCHLD, sigchld);
-	listen( sock_escucha, 1024);
-	fprintf( stdout, "Inicio servidor en el puerto %d\n", port);
-
-	while(TRUE){
-
-		lgadr = sizeof(adr);
-		sock_servicio = accept(sock_escucha,(struct sockaddr*)&adr,&lgadr);
-		fprintf( stdout, "Servicio aceptado\n");
-
-		if(fork() == 0){
-			close(sock_escucha);
-			servicio( sock_servicio );
-			exit(0);
-		}
-		close(sock_servicio);
-	}
-}
 
 bool compareTo(char v1, char v2){
-	printf("Comparo : %c y %c \n", v1, v2);
+	//printf("Comparo : %c y %c \n", v1, v2);
 	bool igual = false;
 	if (v1 == v2){
 		igual = true;
@@ -144,28 +107,63 @@ bool esEntero(char arr[], int t){
 	return eSentero;
 }
 
+generar_alt(){
+	srand(time(NULL));
+	do{
+		for (int i=0; i < 4; i++){
+			alt[i] = rand () % 10;
+			numm[i] = alt[i] + '0';
+		}
+	}while(validar_rpt(numm));
+}
+
+int main( int argc, char*argv[]){
+
+	int sock_escucha, sock_servicio;
+	struct sockaddr_in adr;
+	int lgadr = sizeof(adr);
+	int port = PORT;
+
+	if (argc !=2){
+		fprintf( stderr, "uso: %s [port]\n", argv[0]);
+		exit(1);
+	}
+
+	port = atoi( argv[1]);
+
+	if(( sock_escucha = crearsocket( &port, SOCK_STREAM ))== -1){
+		fprintf( stderr, "Error: No se pudo crear/conectar socket\n");
+		exit(2);
+	}
+
+	signal( SIGCHLD, sigchld);
+	listen( sock_escucha, 1024);
+	fprintf( stdout, "Inicio servidor en el puerto %d\n", port);
+	generar_alt();
+	int num = (alt[0]*1000) + (alt[1]*100) + (alt[2]*10) + alt[3];
+	printf("NUMERO ALEATORIO GENERADO :  %i \n----------------------------\n", num);
+
+	while(TRUE){
+
+		lgadr = sizeof(adr);
+		sock_servicio = accept(sock_escucha,(struct sockaddr*)&adr,&lgadr);
+		fprintf( stdout, "Servicio aceptado\n");
+
+		if(fork() == 0){
+			close(sock_escucha);
+			servicio( sock_servicio );
+			exit(0);
+		}
+		close(sock_servicio);
+	}
+}
+
+
+
 
 
 servicio( int sock){
 	int n ;
-	
-	int alt[4];
-	char numm[4];
-	srand(time(NULL));
-	
-	for (int i=0; i < 4; i++){
-		alt[i] = rand () % 11 - 1;	
-		numm[i] = alt[i] + '0';
-	}
-	while (validar_rpt(numm)){
-		for (int i=0; i < 4; i++){
-			alt[i] = rand () % 11 - 1;
-			numm[i] = alt[i] + '0';
-		}
-	}
-	int num = (alt[0]*1000) + (alt[1]*100) + (alt[2]*10) + alt[3];
-	int tam = strlen(numm);
-	printf("NUMERO ALEATORIO GENERADO :  %i con tamaño %i \n----------------------------\n", num, tam);
 	for (;;) {
 		n = read( sock, line, MAXLINE );
 		if(n <= 0){
@@ -184,7 +182,7 @@ servicio( int sock){
 			char value1 = c + '0';
 			char value2 = c2 + '0';
 			if (c == 4){
-				char congr[] = {'F','E','L','I','C','I','T','A','C','I','O','N','E','S','\n','\0'};
+				char congr[] = "FELICITACIONES, NO GANASTE NADA PERO IGUAL FELICITACIONES";
 				int tr = sizeof(congr);
 				write(sock, congr, tr);
 			} else {
