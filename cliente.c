@@ -9,14 +9,15 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 #define SIZE 256
 #define MAXLINE 4096
+char sendline[MAXLINE], recvline[MAXLINE];
 
 void str_echo(FILE *fp, int sock);
 
 int main( int argc, char *argv[]){
-
 	int sock;
 	char com[SIZE];
 	struct sockaddr_in adr;
@@ -32,7 +33,7 @@ int main( int argc, char *argv[]){
 		exit(2);
 	}
 
-	if ((hp=gethostbyname( argv[1]))==NULL){
+	if ((hp=gethostbyname(argv[1]))==NULL){
 		perror ("Error: Nombre de la maquina desconocido");
 		exit(3);
 	}
@@ -49,20 +50,30 @@ int main( int argc, char *argv[]){
 	str_echo( stdin, sock);
 }
 
-
-void str_echo(FILE*fp, int sock ){
-
-	char sendline[MAXLINE], recvline[MAXLINE];
+void *hilo_escucha(void *arg){
 	int n;
-	while( fgets(sendline, MAXLINE, fp) != NULL){
-		write(sock, sendline, strlen(sendline));
-		if( read(sock, recvline, MAXLINE) == 0) {
-			fprintf ( stderr, "Servidor terminado prematuramente\n" );
+	int sock = *((int*)arg);
+	while(true){
+		n = read(sock, recvline, MAXLINE);
+		
+		if(n  == 0) {
+			fprintf ( stderr, "Servidor terminado\n" );
 			exit(5);
 		}
+		
 		fputs(recvline, stdout);
-		memset(sendline, 0, MAXLINE); 
 		memset(recvline, 0, MAXLINE);			
 	}
+}
+
+void str_echo(FILE*fp, int sock ){
+	
+	pthread_t tr1;
+	
+	pthread_create(&tr1, NULL, hilo_escucha, (void *)&sock);
+	while(fgets(sendline, MAXLINE, fp) != NULL){
+		write(sock, sendline, strlen(sendline));
+	}
+	
 }
 
