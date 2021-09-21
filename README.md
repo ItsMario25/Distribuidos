@@ -1,4 +1,4 @@
-# Distribuidos
+# Distribuidos cliente-servidor
 - Para compilar servidor
 
 gcc servidor.c -lpthread -o server
